@@ -1,23 +1,21 @@
 package ai.quod.challenge.models;
 
-import com.sun.org.apache.xpath.internal.operations.Or;
-
 import java.sql.Timestamp;
 
-public class Fact {
+public class FactModel {
     private String id;
     private String type;
     private boolean isPublic;
 //    private String payload;
 
-    private Repo repo;
-    private Actor actor;
-    private Org org;
+    private RepoModel repo;
+    private ActorModel actor;
+    private OrgModel org;
 
     private Timestamp created_at;
     private String other;
 
-    public Fact(String id, String type, boolean isPublic, Repo repo, Actor actor, Org org, Timestamp created_at, String other) {
+    public FactModel(String id, String type, boolean isPublic, RepoModel repo, ActorModel actor, OrgModel org, Timestamp created_at, String other) {
         this.id = id;
         this.type = type;
         this.isPublic = isPublic;

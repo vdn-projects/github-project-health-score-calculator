@@ -1,10 +1,7 @@
 package ai.quod.challenge;
-import ai.quod.challenge.models.Actor;
-import ai.quod.challenge.models.Fact;
-import ai.quod.challenge.models.Org;
-import ai.quod.challenge.models.Repo;
+import ai.quod.challenge.models.FactModel;
+import ai.quod.challenge.utils.SQLite;
 import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
 
 import java.io.*;
 import java.net.URL;
@@ -24,7 +21,7 @@ public class HealthScoreCalculator {
         Path dbFilePath = FileSystems.getDefault().getPath(dbName);
         Files.deleteIfExists(dbFilePath);
 
-        AppQuery cursor = new AppQuery(dbName);
+        SQLite cursor = new SQLite(dbName);
 
         //Create table
         String queryCreateTables =
@@ -134,7 +131,7 @@ public class HealthScoreCalculator {
                 count++;
 
                 Gson gson = new Gson();
-                Fact fact = gson.fromJson(jsonLine, Fact.class);
+                FactModel factModel = gson.fromJson(jsonLine, FactModel.class);
 
                 int i = 0;
 
