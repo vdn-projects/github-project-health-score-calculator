@@ -1,14 +1,17 @@
 package ai.quod.challenge;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import ai.quod.challenge.models.Actor;
+import ai.quod.challenge.models.Fact;
+import ai.quod.challenge.models.Org;
+import ai.quod.challenge.models.Repo;
+import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -17,56 +20,56 @@ import java.util.zip.GZIPInputStream;
 public class HealthScoreCalculator {
 
     public static void main(String[] args) throws IOException {
-//        String dbName = "gharchive.db";
-//        Path dbFilePath = FileSystems.getDefault().getPath(dbName);
-//        Files.deleteIfExists(dbFilePath);
-//
-//        AppQuery cursor = new AppQuery(dbName);
-//
-//        //Create table
-//        String queryCreateTables =
-//                //Create repo table
-//                "CREATE TABLE repo(" +
-//                "id int PRIMARY KEY," +
-//                "name text," +
-//                "url text" +
-//                ");" +
-//
-//                //actor
-//                "CREATE TABLE actor(" +
-//                "id int PRIMARY KEY," +
-//                "login text," +
-//                "gravatar_id text," +
-//                "avatar_url text," +
-//                "url text" +
-//                ");" +
-//
-//                //org
-//                "CREATE TABLE org(" +
-//                "id int PRIMARY KEY," +
-//                "login text," +
-//                "gravatar_id text," +
-//                "avatar_url text," +
-//                "url text" +
-//                ");" +
-//
-//                //fact
-//                "CREATE TABLE fact(" +
-//                "id text PRIMARY KEY," +
-//                "type text," +
-//                "public boolean," +
-//                "payload text," +
-//                "repo_id int," +
-//                "actor_id int," +
-//                "org_id int," +
-//                "created_at text" +
-//                "other text," +
-//                "FOREIGN KEY (repo_id) REFERENCES repo(id)," +
-//                "FOREIGN KEY (actor_id) REFERENCES actor(id)," +
-//                "FOREIGN KEY (org_id) REFERENCES org(id)" +
-//                ");";
-//
-//        cursor.execSql(queryCreateTables);
+        String dbName = "gharchive.db";
+        Path dbFilePath = FileSystems.getDefault().getPath(dbName);
+        Files.deleteIfExists(dbFilePath);
+
+        AppQuery cursor = new AppQuery(dbName);
+
+        //Create table
+        String queryCreateTables =
+                //Create repo table
+                "CREATE TABLE repo(" +
+                "id int PRIMARY KEY," +
+                "name text," +
+                "url text" +
+                ");" +
+
+                //actor
+                "CREATE TABLE actor(" +
+                "id int PRIMARY KEY," +
+                "login text," +
+                "gravatar_id text," +
+                "avatar_url text," +
+                "url text" +
+                ");" +
+
+                //org
+                "CREATE TABLE org(" +
+                "id int PRIMARY KEY," +
+                "login text," +
+                "gravatar_id text," +
+                "avatar_url text," +
+                "url text" +
+                ");" +
+
+                //fact
+                "CREATE TABLE fact(" +
+                "id text PRIMARY KEY," +
+                "type text," +
+                "public boolean," +
+                //"payload text," +
+                "repo_id int," +
+                "actor_id int," +
+                "org_id int," +
+                "created_at text" +
+                "other text," +
+                "FOREIGN KEY (repo_id) REFERENCES repo(id)," +
+                "FOREIGN KEY (actor_id) REFERENCES actor(id)," +
+                "FOREIGN KEY (org_id) REFERENCES org(id)" +
+                ");";
+
+        cursor.execSql(queryCreateTables);
 //
 //        //Download file
 //        String url = "https://data.gharchive.org/2019-10-05-23.json.gz";
@@ -79,8 +82,8 @@ public class HealthScoreCalculator {
         //Parse data
         readStream(jsonFilePath);
 
-
         //Insert into database
+
 
         //Get metric
 
@@ -130,13 +133,10 @@ public class HealthScoreCalculator {
                 System.out.println(jsonLine);
                 count++;
 
-                JsonElement jelement = new JsonParser().parse(jsonLine);
-                JsonObject jobject = jelement.getAsJsonObject();
-                jobject = jobject.getAsJsonObject("objs");
-                JsonArray jarray = jobject.getAsJsonArray("obj1");
-                jobject = jarray.get(0).getAsJsonObject();
-                String ID1 = jobject.get("ID1").toString();
-                String ID2 = jobject.get("ID2").toString();
+                Gson gson = new Gson();
+                Fact fact = gson.fromJson(jsonLine, Fact.class);
+
+                int i = 0;
 
             }
             bufferedReader.close();
