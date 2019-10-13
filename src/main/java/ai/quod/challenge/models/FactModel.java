@@ -1,28 +1,49 @@
 package ai.quod.challenge.models;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.sql.Date;
 
 public class FactModel {
     private String id;
+    private Repo repo;
     private String type;
-    private boolean isPublic;
-//    private String payload;
-
-    private RepoModel repo;
     private ActorModel actor;
-    private OrgModel org;
 
     private Timestamp created_at;
-    private String other;
 
-    public FactModel(String id, String type, boolean isPublic, RepoModel repo, ActorModel actor, OrgModel org, Timestamp created_at, String other) {
+    public FactModel(String id, Repo repo, String type, ActorModel actor, String created_at) throws ParseException {
         this.id = id;
-        this.type = type;
-        this.isPublic = isPublic;
         this.repo = repo;
+        this.type = type;
         this.actor = actor;
-        this.org = org;
-        this.created_at = created_at;
-        this.other = other;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        this.created_at = new Timestamp(sdf.parse(created_at).getTime());
+
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Repo getRepo() {
+        return repo;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public ActorModel getActor() {
+        return actor;
+    }
+
+    public Timestamp getCreated_at() {
+        return created_at;
     }
 }

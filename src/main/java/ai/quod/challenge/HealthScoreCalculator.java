@@ -1,73 +1,30 @@
 package ai.quod.challenge;
+import ai.quod.challenge.DAL.*;
 import ai.quod.challenge.models.FactModel;
+import ai.quod.challenge.models.issue.PayloadIssueModel;
+import ai.quod.challenge.models.pullrequest.PayloadPRModel;
 import ai.quod.challenge.utils.SQLite;
 import com.google.gson.*;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
+
+import static ai.quod.challenge.DAL.SetupDB.DB_NAME;
 
 
 public class HealthScoreCalculator {
 
-    public static void main(String[] args) throws IOException {
-        String dbName = "gharchive.db";
-        Path dbFilePath = FileSystems.getDefault().getPath(dbName);
-        Files.deleteIfExists(dbFilePath);
-
-        SQLite cursor = new SQLite(dbName);
-
-        //Create table
-        String queryCreateTables =
-                //Create repo table
-                "CREATE TABLE repo(" +
-                "id int PRIMARY KEY," +
-                "name text," +
-                "url text" +
-                ");" +
-
-                //actor
-                "CREATE TABLE actor(" +
-                "id int PRIMARY KEY," +
-                "login text," +
-                "gravatar_id text," +
-                "avatar_url text," +
-                "url text" +
-                ");" +
-
-                //org
-                "CREATE TABLE org(" +
-                "id int PRIMARY KEY," +
-                "login text," +
-                "gravatar_id text," +
-                "avatar_url text," +
-                "url text" +
-                ");" +
-
-                //fact
-                "CREATE TABLE fact(" +
-                "id text PRIMARY KEY," +
-                "type text," +
-                "public boolean," +
-                //"payload text," +
-                "repo_id int," +
-                "actor_id int," +
-                "org_id int," +
-                "created_at text" +
-                "other text," +
-                "FOREIGN KEY (repo_id) REFERENCES repo(id)," +
-                "FOREIGN KEY (actor_id) REFERENCES actor(id)," +
-                "FOREIGN KEY (org_id) REFERENCES org(id)" +
-                ");";
-
-        cursor.execSql(queryCreateTables);
-//
+    public static void main(String[] args) throws IOException, SQLException {
+        SetupDB.createTables();
 //        //Download file
 //        String url = "https://data.gharchive.org/2019-10-05-23.json.gz";
 //        downloadWithJavaIO(url, "./data/test.gz");
@@ -120,31 +77,77 @@ public class HealthScoreCalculator {
         }
     }
 
-    public static void readStream(String jsonPath) {
+
+
+    public static void readStream(String jsonPath) throws SQLException {
+        Connection connection = null;
+        PreparedStatement pstmt = null;
+        String sql = "INSERT INTO fact(id,org,repo_name,type,actor,payload_no,payload_action,created_at) VALUES(?,?,?,?,?,?,?,?);";
         try {
             FileReader fileReader = new FileReader(jsonPath);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String jsonLine = null;
             int count = 0;
-            while((jsonLine = bufferedReader.readLine()) != null) {
+            int batchSize = 20000;
+
+            connection = new SQLite().openConnection(DB_NAME);
+            connection.setAutoCommit(false);
+            pstmt = connection.prepareStatement(sql);
+
+            while ((jsonLine = bufferedReader.readLine()) != null) {
                 System.out.println(jsonLine);
                 count++;
+                FactModel fact = new Gson().fromJson(jsonLine, FactModel.class);
 
-                Gson gson = new Gson();
-                FactModel factModel = gson.fromJson(jsonLine, FactModel.class);
+                pstmt.setString(1,fact.getId());
 
-                int i = 0;
+                String org = fact.getRepo().getName().split("/")[0];
+                String repo_name = fact.getRepo().getName().split("/")[1];
+                pstmt.setString(2,org);
+                pstmt.setString(3,repo_name);
 
+                pstmt.setString(4,fact.getType());
+                pstmt.setString(5,fact.getActor().getLogin());
+
+
+                if (fact.getType().equals("IssuesEvent")) {
+                    PayloadIssueModel issue = new Gson().fromJson(jsonLine, PayloadIssueModel.class);
+                    pstmt.setLong(6,issue.getPayload().getIssue().getNumber());
+                    pstmt.setString(7,issue.getPayload().getAction());
+
+                }else if (fact.getType().equals("PullRequestEvent")){
+                    PayloadPRModel pr = new Gson().fromJson(jsonLine, PayloadPRModel.class);
+                    pstmt.setLong(6,pr.getPayload().getNumber());
+                    pstmt.setString(7,pr.getPayload().getAction());
+
+                }else {
+                    pstmt.setNull(6, Types.INTEGER);
+                    pstmt.setNull(7, Types.VARCHAR);
+                }
+
+                pstmt.setTimestamp(8,fact.getCreated_at());
+
+                pstmt.addBatch();
+
+                //Commit batch for every batchSize
+                //This technique is to increase the speed of INSERT
+                if(count % batchSize == 0){
+                    int[] result = pstmt.executeBatch();
+                    System.out.println("Number of rows inserted: "+ result.length);
+                    connection.commit();
+                }
             }
             bufferedReader.close();
-            System.out.println("Total rows: " + count);
+            System.out.println("Total rows inserted:" + count);
 
-
-
-        } catch (FileNotFoundException e) {
-            System.err.print(e.getMessage());
-        } catch (IOException e) {
-            System.err.print(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            // connection.rollBack();
+        } finally {
+            if (pstmt != null)
+                pstmt.close();
+            if (connection != null)
+                connection.close();
         }
     }
 }
