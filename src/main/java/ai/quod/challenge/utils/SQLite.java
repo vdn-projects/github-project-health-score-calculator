@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
 
+import static ai.quod.challenge.DAL.SetupDB.DB_NAME;
+
 public class SQLite {
     private static final String DRIVER = "org.sqlite.JDBC";
     private static final String PATH = "jdbc:sqlite:";
@@ -28,4 +30,12 @@ public class SQLite {
         ex.printStackTrace();
     }
 
+    public static void execStmtSql(String sql) {
+        try (Connection conn = new SQLite().openConnection(DB_NAME);
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate(sql);
+        } catch (SQLException | IOException ex) {
+            System.err.print(ex.getMessage());
+        }
+    }
 }

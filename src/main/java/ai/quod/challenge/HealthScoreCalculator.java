@@ -5,16 +5,14 @@ import ai.quod.challenge.models.issue.PayloadIssueModel;
 import ai.quod.challenge.models.pullrequest.PayloadPRModel;
 import ai.quod.challenge.utils.SQLite;
 import com.google.gson.*;
+import com.opencsv.CSVWriter;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
@@ -24,6 +22,7 @@ import static ai.quod.challenge.DAL.SetupDB.DB_NAME;
 public class HealthScoreCalculator {
 
     public static void main(String[] args) throws IOException, SQLException {
+        double num_of_days = 1.0/24.0;
         SetupDB.createTables();
 //        //Download file
 //        String url = "https://data.gharchive.org/2019-10-05-23.json.gz";
@@ -33,13 +32,16 @@ public class HealthScoreCalculator {
         String jsonFilePath = "./data/test.json";
         decompressGzip(new File("./data/test.gz"), new File(jsonFilePath));
 
-        //Parse data
-        readStream(jsonFilePath);
-
         //Insert into database
-
+        json2SQLite(jsonFilePath);
 
         //Get metric
+        //Insert commit data
+        insertCommitData(num_of_days);
+        insertCommitMetric();
+
+        //Export health metric
+        exportHealthMetric();
 
 
     }
@@ -79,7 +81,7 @@ public class HealthScoreCalculator {
 
 
 
-    public static void readStream(String jsonPath) throws SQLException {
+    public static void json2SQLite(String jsonPath) throws SQLException {
         Connection connection = null;
         PreparedStatement pstmt = null;
         String sql = "INSERT INTO fact(id,org,repo_name,type,actor,payload_no,payload_action,created_at) VALUES(?,?,?,?,?,?,?,?);";
@@ -108,7 +110,6 @@ public class HealthScoreCalculator {
 
                 pstmt.setString(4,fact.getType());
                 pstmt.setString(5,fact.getActor().getLogin());
-
 
                 if (fact.getType().equals("IssuesEvent")) {
                     PayloadIssueModel issue = new Gson().fromJson(jsonLine, PayloadIssueModel.class);
@@ -150,4 +151,80 @@ public class HealthScoreCalculator {
                 connection.close();
         }
     }
+
+    public static void insertCommitData(double num_of_days) throws SQLException {
+        Connection connection = null;
+        PreparedStatement pstmt = null;
+        String sql =
+                "INSERT INTO avg_commit(org,repo_name,num_commits) " +
+                "SELECT org,repo_name,COUNT(*)/? num_commits " +
+                "FROM fact " +
+                "WHERE \"type\"='PushEvent' " +
+                "GROUP BY org, repo_name";
+        try {
+            connection = new SQLite().openConnection(DB_NAME);
+            pstmt = connection.prepareStatement(sql);
+            pstmt.setDouble(1,num_of_days);
+            pstmt.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (pstmt != null)
+                pstmt.close();
+            if (connection != null)
+                connection.close();
+        }
+    }
+
+    public static void insertCommitMetric() throws SQLException {
+        Connection connection = null;
+        Statement stmt = null;
+        String sql =
+                "INSERT INTO health_metric(org,repo_name,num_commits,max_num_commits) " +
+                "SELECT org,repo_name,num_commits,(select MAX(num_commits) from avg_commit) max_num_commits " +
+                "FROM avg_commit;";
+        try {
+            connection = new SQLite().openConnection(DB_NAME);
+            stmt = connection.createStatement();
+            stmt.execute(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (stmt != null)
+                stmt.close();
+            if (connection != null)
+                connection.close();
+        }
+    }
+
+    public static void exportHealthMetric() throws SQLException {
+        Connection connection = null;
+        Statement stmt = null;
+        String sql =
+                "SELECT org,repo_name,num_commits,printf(\"%.2f\", (num_commits*1.0/max_num_commits)) health_score " +
+                "FROM health_metric " +
+                "ORDER BY health_score DESC " +
+                "LIMIT 1000;";
+
+        try {
+            connection = new SQLite().openConnection(DB_NAME);
+            stmt = connection.createStatement();
+            ResultSet resultSet = stmt.executeQuery(sql);
+            extractCsv(resultSet, "output.csv");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (stmt != null)
+                stmt.close();
+            if (connection != null)
+                connection.close();
+        }
+    }
+
+    public static void extractCsv(ResultSet resultSet, String csvPath) throws IOException, SQLException {
+        CSVWriter writer = new CSVWriter(new FileWriter(csvPath), CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER);
+        writer.writeAll(resultSet, true);
+        writer.close();
+    }
+
 }
