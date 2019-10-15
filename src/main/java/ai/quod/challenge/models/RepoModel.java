@@ -1,9 +1,9 @@
 package ai.quod.challenge.models;
 
-public class Repo {
+public class RepoModel {
     private String name;
 
-    public Repo(String name) {
+    public RepoModel(String name) {
         this.name = name;
     }
 

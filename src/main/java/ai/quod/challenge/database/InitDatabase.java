@@ -1,13 +1,14 @@
-package ai.quod.challenge.DAL;
+package ai.quod.challenge.database;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import static ai.quod.challenge.utils.SQLite.execStmtSql;
-
-public final class SetupDB {
+public final class InitDatabase {
     public static final String DB_NAME = "gharchive.db";
 
     private final static String createFact =
@@ -24,7 +25,7 @@ public final class SetupDB {
             ")";
 
     private final static String createCommitData =
-            "CREATE TABLE commit_data(" +
+            "CREATE TABLE commit_count_data(" +
             "org text," +
             "repo_name text," +
             "num_commits int," +
@@ -32,7 +33,7 @@ public final class SetupDB {
             ")";
 
     private final static String createCommitMetric =
-            "CREATE TABLE commit_metric(" +
+            "CREATE TABLE commit_count_metric(" +
             "org text," +
             "repo_name text," +
             "num_commits int," +
@@ -83,14 +84,31 @@ public final class SetupDB {
             "PRIMARY KEY(org, repo_name)" +
             ")";
 
+    private final static String createCommitDeveloperRatioData =
+            "CREATE TABLE commit_developer_ratio_data(" +
+            "org text," +
+            "repo_name text," +
+            "num_commits int," +
+            "num_developers int," +
+            "ratio float," +
+            "PRIMARY KEY(org,repo_name)" +
+            ")";
+
+    private final static String createCommitDeveloperRatioMetric =
+            "CREATE TABLE commit_developer_ratio_metric(" +
+            "org text," +
+            "repo_name text," +
+            "ratio float," +
+            "max_ratio float," +
+            "metric float," +
+            "PRIMARY KEY(org, repo_name)" +
+            ")";
+
 
     public static void  createTables() throws IOException {
         Path dbFilePath = FileSystems.getDefault().getPath(DB_NAME);
         Files.deleteIfExists(dbFilePath);
 
-//        execSql(createRepo);
-//        execSql(createActor);
-//        execSql(createOrg);
         execStmtSql(createFact);
 
         execStmtSql(createCommitData);
@@ -101,7 +119,18 @@ public final class SetupDB {
 
         execStmtSql(createPRMergedData);
         execStmtSql(createPRMergedMetric);
+
+        execStmtSql(createCommitDeveloperRatioData);
+        execStmtSql(createCommitDeveloperRatioMetric);
     }
 
 
+    private static void execStmtSql(String sql) {
+        try (Connection conn = new SQLiteConnection().openConnection(DB_NAME);
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate(sql);
+        } catch (SQLException | IOException ex) {
+            System.err.print(ex.getMessage());
+        }
+    }
 }

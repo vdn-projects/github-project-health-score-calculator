@@ -1,22 +1,18 @@
 package ai.quod.challenge.models;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.sql.Date;
 
 public class FactModel {
     private String id;
-    private Repo repo;
+    private RepoModel repo;
     private String type;
     private ActorModel actor;
 
     private Timestamp created_at;
 
-    public FactModel(String id, Repo repo, String type, ActorModel actor, String created_at) throws ParseException {
+    public FactModel(String id, RepoModel repo, String type, ActorModel actor, String created_at) throws ParseException {
         this.id = id;
         this.repo = repo;
         this.type = type;
@@ -31,7 +27,7 @@ public class FactModel {
         return id;
     }
 
-    public Repo getRepo() {
+    public RepoModel getRepo() {
         return repo;
     }
 
