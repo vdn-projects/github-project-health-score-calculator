@@ -24,6 +24,41 @@ public final class InitDatabase {
             "created_at datetime" +
             ")";
 
+    private final static String createOrgRepo =
+            "CREATE TABLE org_repo(" +
+            "org text," +
+            "repo_name text" +
+            ")";
+
+    private final static String createHealthMetric =
+            "CREATE TABLE health_metric(" +
+            "org text," +
+            "repo_name text," +
+            "health_score float," +
+
+            //Number of commits (push event)
+            "num_commits int," +
+            "max_num_commits int," +
+            "commit_count_metric float," +
+
+            //Duration from opened to closed for an issue
+            "avg_opened_issued_duration float," +
+            "min_opened_issued_duration float," +
+            "opened_issued_metric float," +
+
+            //Duration from opened to merged for a pull request
+            "avg_merged_pr_duration float," +
+            "min_merged_pr_duration float," +
+            "merged_pr_metric float," +
+
+            //Ration of commit per developers
+            "commit_developer_ratio float," +
+            "max_commit_developer_ratio float," +
+            "commit_developer_metric float," +
+
+            "PRIMARY KEY(org, repo_name)" +
+            ")";
+
     private final static String createCommitData =
             "CREATE TABLE commit_count_data(" +
             "org text," +
@@ -110,6 +145,8 @@ public final class InitDatabase {
         Files.deleteIfExists(dbFilePath);
 
         execStmtSql(createFact);
+        execStmtSql(createOrgRepo);
+//        execStmtSql(createHealthMetric);
 
         execStmtSql(createCommitData);
         execStmtSql(createCommitMetric);

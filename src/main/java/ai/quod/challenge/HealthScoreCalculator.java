@@ -1,19 +1,12 @@
 package ai.quod.challenge;
 import ai.quod.challenge.database.*;
-import ai.quod.challenge.metrics.CommitCount;
-import ai.quod.challenge.metrics.CommitDeveloperRatio;
-import ai.quod.challenge.metrics.MergedPullRequest;
-import ai.quod.challenge.metrics.OpenedIssue;
-import ai.quod.challenge.database.SQLiteConnection;
+import ai.quod.challenge.metrics.*;
 import ai.quod.challenge.utils.FileHandling;
 
 import java.io.*;
 import java.sql.*;
 
 import java.time.Instant;
-
-
-import static ai.quod.challenge.database.InitDatabase.DB_NAME;
 
 
 public class HealthScoreCalculator {
@@ -37,37 +30,15 @@ public class HealthScoreCalculator {
         //Insert into database
         LoadData.ingestFactData(jsonFilePath);
 
+        HealthMetrics.insertOrgRepo();
+
         //Process data for every single metric
         CommitCount.process(num_of_days);
         OpenedIssue.process(nowTick);
         MergedPullRequest.process();
         CommitDeveloperRatio.process();
 
-//        exportHealthMetric();
-    }
-
-    public static void exportHealthMetric() throws SQLException {
-        Connection connection = null;
-        Statement stmt = null;
-        String sql =
-                "SELECT org,repo_name,num_commits,printf(\"%.2f\", (num_commits*1.0/max_num_commits)) health_score " +
-                "FROM health_metric " +
-                "ORDER BY health_score DESC " +
-                "LIMIT 1000;";
-
-        try {
-            connection = new SQLiteConnection().openConnection(DB_NAME);
-            stmt = connection.createStatement();
-            ResultSet resultSet = stmt.executeQuery(sql);
-            FileHandling.extractCsv(resultSet, "output.csv");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (stmt != null)
-                stmt.close();
-            if (connection != null)
-                connection.close();
-        }
+        HealthMetrics.exportHealthMetric();
     }
 
 }
