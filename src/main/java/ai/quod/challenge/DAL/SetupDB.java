@@ -19,22 +19,68 @@ public final class SetupDB {
             "actor text," +
             "payload_no int," +
             "payload_action text," +
+            "is_merged boolean," +
             "created_at datetime" +
             ")";
-    private final static String createCommit =
-            "CREATE TABLE avg_commit(" +
+
+    private final static String createCommitData =
+            "CREATE TABLE commit_data(" +
             "org text," +
             "repo_name text," +
             "num_commits int," +
             "PRIMARY KEY(org, repo_name)" +
             ")";
-    private final static String createMetric =
-            "CREATE TABLE health_metric(" +
+
+    private final static String createCommitMetric =
+            "CREATE TABLE commit_metric(" +
             "org text," +
             "repo_name text," +
             "num_commits int," +
             "max_num_commits int," +
-            "PRIMARY KEY(org, repo_name) ON CONFLICT IGNORE" +
+            "metric float," +
+            "PRIMARY KEY(org, repo_name)" +
+            ")";
+
+    private final static String createIssueOpenedData =
+            "CREATE TABLE issue_opened_data(" +
+            "org text," +
+            "repo_name text," +
+            "payload_no text," +
+            "opened_at datetime," +
+            "now datetime," +
+            "opened_duration int," +
+            "PRIMARY KEY(org,repo_name,payload_no)" +
+            ")";
+
+    private final static String createIssueOpenedMetric =
+            "CREATE TABLE issue_opened_metric(" +
+            "org text," +
+            "repo_name text," +
+            "avg_opened_duration int," +
+            "min_opened_duration int," +
+            "metric float," +
+            "PRIMARY KEY(org, repo_name)" +
+            ")";
+
+    private final static String createPRMergedData =
+            "CREATE TABLE pr_merged_data(" +
+            "org text," +
+            "repo_name text," +
+            "payload_no text," +
+            "opened_at datetime," +
+            "merged_at datetime," +
+            "merged_duration int," +
+            "PRIMARY KEY(org,repo_name,payload_no)" +
+            ")";
+
+    private final static String createPRMergedMetric =
+            "CREATE TABLE pr_merged_metric(" +
+            "org text," +
+            "repo_name text," +
+            "avg_merged_duration int," +
+            "min_merged_duration int," +
+            "metric float," +
+            "PRIMARY KEY(org, repo_name)" +
             ")";
 
 
@@ -46,8 +92,15 @@ public final class SetupDB {
 //        execSql(createActor);
 //        execSql(createOrg);
         execStmtSql(createFact);
-        execStmtSql(createCommit);
-        execStmtSql(createMetric);
+
+        execStmtSql(createCommitData);
+        execStmtSql(createCommitMetric);
+
+        execStmtSql(createIssueOpenedData);
+        execStmtSql(createIssueOpenedMetric);
+
+        execStmtSql(createPRMergedData);
+        execStmtSql(createPRMergedMetric);
     }
 
 
