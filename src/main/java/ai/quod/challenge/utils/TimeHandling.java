@@ -15,7 +15,8 @@ public class TimeHandling {
         //check ISO format
         if(!isValidIsoDateTime(dateFrom) || !isValidIsoDateTime(dateTo)){
             showMessageDialog(null, "DateFrom/DateTo must be in ISO-8601 format. Eg: 2019-08-01T00:00:00Z\n" +
-                    "Please run again with appropriate format");
+                    "Please run again with appropriate format.\n" +
+                    "Program stopped with invalid inputs");
             return false;
         }
 

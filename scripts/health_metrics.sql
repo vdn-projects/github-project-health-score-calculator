@@ -24,3 +24,5 @@ LEFT JOIN pr_merged_metric pr ON pr.org = h.org AND pr.repo_name = h.repo_name
 LEFT JOIN commit_developer_ratio_metric cd ON cd.org = h.org AND cd.repo_name = h.repo_name
 ORDER BY health_score DESC
 LIMIT 1000;
+
+CREATE INDEX fact_index ON fact(type,org,repo_name)

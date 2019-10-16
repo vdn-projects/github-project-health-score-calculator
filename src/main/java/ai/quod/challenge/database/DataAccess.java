@@ -8,15 +8,12 @@ import com.google.gson.Gson;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
 
 import static ai.quod.challenge.database.InitDatabase.DB_NAME;
 
-public class LoadData {
+public class DataAccess {
     public static void ingestJson2DB(ArrayList<String> hourList) throws SQLException {
         for (String hour: hourList
         ) {
@@ -93,6 +90,26 @@ public class LoadData {
         } finally {
             if (pstmt != null)
                 pstmt.close();
+            if (connection != null)
+                connection.close();
+        }
+    }
+
+    public static void createFactIndex() throws SQLException {
+        System.out.println("Creating INDEX on fact(type,org,repo_name) columns.");
+        Connection connection = null;
+        Statement stmt = null;
+        String sql =
+                "CREATE INDEX fact_index ON fact(type,org,repo_name)";
+        try {
+            connection = new SQLiteConnection().openConnection(DB_NAME);
+            stmt = connection.createStatement();
+            stmt.executeUpdate(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (stmt != null)
+                stmt.close();
             if (connection != null)
                 connection.close();
         }
