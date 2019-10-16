@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static ai.quod.challenge.utils.FileHandling.DB_PATH;
+import static ai.quod.challenge.utils.FileHandling.SQLITE_DB_PATH;
 
 public class OpenedIssue {
     public static void process(long nowTick) {
@@ -44,7 +44,7 @@ public class OpenedIssue {
                 "AND	(	(reopened_at IS NULL AND closed_at IS NULL) " +
                 "		OR (reopened_at IS NOT NULL AND closed_at IS NOT NULL AND reopened_at > closed_at));";
         try {
-            connection = new SQLiteConnection().openConnection(DB_PATH);
+            connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             pstmt = connection.prepareStatement(sql);
             pstmt.setLong(1,nowTick);
             pstmt.setLong(2,nowTick);
@@ -73,7 +73,7 @@ public class OpenedIssue {
                         "FROM issue_opened_data " +
                         "GROUP BY org,repo_name;";
         try {
-            connection = new SQLiteConnection().openConnection(DB_PATH);
+            connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             connection.setAutoCommit(false);
             stmt = connection.createStatement();
             stmt.addBatch(sql1);

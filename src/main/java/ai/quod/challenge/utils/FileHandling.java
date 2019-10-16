@@ -11,17 +11,32 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 public class FileHandling {
-    public static final String BASE_PATH = System.getProperty("user.dir");
-    public static final String DATA_PATH = BASE_PATH + "/data/";
-    public static final String DB_PATH = BASE_PATH + "/data/gharchive.db";
+    private static final String BASE_PATH = System.getProperty("user.dir");
     private static final String GH_ARCHIVE_LINK = "https://data.gharchive.org/";
-    public static final String CSV_OUTPUT_PATH = BASE_PATH + "/output/health_scores.csv";
 
-    public static void decompress(ArrayList<String> hourList) throws IOException {
+    public static final String DATA_PATH = BASE_PATH + "/data/";
+    public static final String SQLITE_DB_PATH = DATA_PATH + "gharchive.db";
+
+    public static final String OUTPUT_PATH = BASE_PATH + "/output/";
+    public static final String HEALTH_SCORE_OUTPUT_PATH = OUTPUT_PATH + "health_scores.csv";
+
+    public static void initDirectory(){
+
+    }
+
+    public static void downloadAndDecompress(ArrayList<String> hourList) {
+        new File(DATA_PATH).mkdirs();
+        new File(OUTPUT_PATH).mkdirs();
+        download(hourList);
+        decompress(hourList);
+    }
+
+    private static void decompress(ArrayList<String> hourList) {
         for (String hour: hourList
         ) {
             try {
@@ -36,7 +51,7 @@ public class FileHandling {
         }
     }
 
-    public static void download(ArrayList<String> hourList) {
+    private static void download(ArrayList<String> hourList) {
         deleteFiles(DATA_PATH, new String[]{"gz", "json"});
         for (String hour: hourList
         ) {
@@ -55,7 +70,7 @@ public class FileHandling {
         System.setProperty("http.agent", "Safari");
         try (BufferedInputStream in = new BufferedInputStream(new URL(url).openStream()); FileOutputStream fileOutputStream = new FileOutputStream(localFilename)) {
 
-            byte dataBuffer[] = new byte[1024];
+            byte[] dataBuffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
@@ -78,9 +93,8 @@ public class FileHandling {
     }
 
     private static String readFile(String path) throws IOException {
-        String content = Files.lines(Paths.get(path), StandardCharsets.UTF_8)
+        return Files.lines(Paths.get(path), StandardCharsets.UTF_8)
                 .collect(Collectors.joining(System.lineSeparator()));
-        return content;
     }
 
     public static void extractCsv(ResultSet resultSet, String csvPath) throws IOException, SQLException {
@@ -93,7 +107,7 @@ public class FileHandling {
         try {
             for (String extension:extensions
                  ) {
-                Arrays.stream(new File(path).listFiles((f, p) -> p.endsWith(extension))).forEach(File::delete);
+                Arrays.stream(Objects.requireNonNull(new File(path).listFiles((f, p) -> p.endsWith(extension)))).forEach(File::delete);
             }
         } catch (Exception e) {
             e.printStackTrace();

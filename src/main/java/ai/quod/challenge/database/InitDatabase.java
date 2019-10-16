@@ -142,7 +142,7 @@ public final class InitDatabase {
 
 
     public static void  createTables() throws IOException {
-        Path dbFilePath = FileSystems.getDefault().getPath(FileHandling.DB_PATH);
+        Path dbFilePath = FileSystems.getDefault().getPath(FileHandling.SQLITE_DB_PATH);
         Files.deleteIfExists(dbFilePath);
 
         execStmtSql(createFact);
@@ -164,7 +164,7 @@ public final class InitDatabase {
 
 
     private static void execStmtSql(String sql) {
-        try (Connection conn = new SQLiteConnection().openConnection(FileHandling.DB_PATH);
+        try (Connection conn = new SQLiteConnection().openConnection(FileHandling.SQLITE_DB_PATH);
              Statement statement = conn.createStatement()) {
             statement.executeUpdate(sql);
         } catch (SQLException | IOException ex) {

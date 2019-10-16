@@ -41,14 +41,15 @@ public class TimeHandling {
     }
 
     public static ArrayList<String> getHourNameList(Instant isDateFrom, Instant isDateTo) {
-        ArrayList<String> hourList = new ArrayList<String>();
+        System.out.println("Data process is from " + isDateFrom.truncatedTo(ChronoUnit.HOURS).toString()
+                + " to " + isDateTo.truncatedTo(ChronoUnit.HOURS).toString());
+        ArrayList<String> hourList = new ArrayList<>();
         Instant iterInstant = isDateFrom;
         while(iterInstant.compareTo(isDateTo) < 0){
             String downloadName =   String.format("%04d", iterInstant.atZone(ZoneOffset.UTC).getYear()) + "-" +
                                     String.format("%02d", iterInstant.atZone(ZoneOffset.UTC).getMonthValue()) + "-" +
                                     String.format("%02d", iterInstant.atZone(ZoneOffset.UTC).getDayOfMonth()) + "-" +
                                     iterInstant.atZone(ZoneOffset.UTC).getHour();
-                                    ;
 
             hourList.add(downloadName);
             iterInstant = iterInstant.plus(1, ChronoUnit.HOURS);

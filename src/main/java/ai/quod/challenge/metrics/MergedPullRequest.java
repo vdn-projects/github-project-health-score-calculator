@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static ai.quod.challenge.utils.FileHandling.DB_PATH;
+import static ai.quod.challenge.utils.FileHandling.SQLITE_DB_PATH;
 
 public class MergedPullRequest {
     public static void process() {
@@ -43,7 +43,7 @@ public class MergedPullRequest {
                 "WHERE opened_at IS NOT NULL " +
                 "AND	merged_at IS NOT NULL";
         try {
-            connection = new SQLiteConnection().openConnection(DB_PATH);
+            connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             stmt = connection.createStatement();
             stmt.executeUpdate(sql);
         } catch (Exception e) {
@@ -70,7 +70,7 @@ public class MergedPullRequest {
                         "FROM pr_merged_data " +
                         "GROUP BY org,repo_name;";
         try {
-            connection = new SQLiteConnection().openConnection(DB_PATH);
+            connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             connection.setAutoCommit(false);
             stmt = connection.createStatement();
             stmt.addBatch(sql1);

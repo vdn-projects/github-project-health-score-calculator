@@ -19,8 +19,8 @@ public class HealthScoreCalculator {
 
     public static void main(String[] args) throws IOException, SQLException {
         System.out.println("Program started!");
-        Instant isDateFrom = null;
-        Instant isDateTo = null;
+        Instant isDateFrom;
+        Instant isDateTo;
 
         //Input arguments handling
         if(args.length == 0){
@@ -49,9 +49,8 @@ public class HealthScoreCalculator {
         //Get hour list to build an array of file names to download
         ArrayList<String> hourList = TimeHandling.getHourNameList(isDateFrom, isDateTo);
 
-        //Download and extract json by hour
-        FileHandling.download(hourList);
-        FileHandling.decompress(hourList);
+        //Download and extract json by gz file named by hour (yyyy-MM-dd-H.gz)
+        FileHandling.downloadAndDecompress(hourList);
 
         //SQLite database handling
         InitDatabase.createTables();

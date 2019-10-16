@@ -3,6 +3,8 @@ package ai.quod.challenge.metrics;
 import ai.quod.challenge.database.SQLiteConnection;
 import ai.quod.challenge.utils.FileHandling;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -12,13 +14,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static ai.quod.challenge.utils.FileHandling.DB_PATH;
+import static ai.quod.challenge.utils.FileHandling.SQLITE_DB_PATH;
 
 public class HealthMetrics {
 
     public static void exportHealthMetric() throws SQLException, IOException {
         System.out.println("Exporting health metric ...");
-        Path dbFilePath = FileSystems.getDefault().getPath(FileHandling.CSV_OUTPUT_PATH);
+        Path dbFilePath = FileSystems.getDefault().getPath(FileHandling.HEALTH_SCORE_OUTPUT_PATH);
         Files.deleteIfExists(dbFilePath);
         Connection connection = null;
         Statement stmt = null;
@@ -51,11 +53,12 @@ public class HealthMetrics {
                 "LIMIT 1000; ";
 
         try {
-            connection = new SQLiteConnection().openConnection(DB_PATH);
+            connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             stmt = connection.createStatement();
             ResultSet resultSet = stmt.executeQuery(sql);
-            FileHandling.extractCsv(resultSet, FileHandling.CSV_OUTPUT_PATH);
-            System.out.println("Health metric result file is placed in: " + FileHandling.CSV_OUTPUT_PATH);
+            FileHandling.extractCsv(resultSet, FileHandling.HEALTH_SCORE_OUTPUT_PATH);
+            Desktop.getDesktop().open(new File(FileHandling.OUTPUT_PATH));
+            System.out.println("Health metric result file is placed in: " + FileHandling.HEALTH_SCORE_OUTPUT_PATH);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -76,7 +79,7 @@ public class HealthMetrics {
                 "WHERE \"type\" IN ('PushEvent', 'IssuesEvent', 'PullRequestEvent') ";
 
         try {
-            connection = new SQLiteConnection().openConnection(DB_PATH);
+            connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             stmt = connection.createStatement();
             stmt.executeUpdate(sql);
         } catch (Exception e) {

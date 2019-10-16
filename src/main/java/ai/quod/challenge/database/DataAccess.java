@@ -11,7 +11,7 @@ import java.sql.*;
 import java.util.ArrayList;
 
 import static ai.quod.challenge.utils.FileHandling.DATA_PATH;
-import static ai.quod.challenge.utils.FileHandling.DB_PATH;
+import static ai.quod.challenge.utils.FileHandling.SQLITE_DB_PATH;
 
 public class DataAccess {
     public static void ingestJson2DB(ArrayList<String> hourList) throws SQLException {
@@ -30,11 +30,11 @@ public class DataAccess {
         try {
             FileReader fileReader = new FileReader(jsonPath);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
-            String jsonLine = null;
+            String jsonLine;
             int count = 0;
             int batchSize = 20000;
 
-            connection = new SQLiteConnection().openConnection(DB_PATH);
+            connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             connection.setAutoCommit(false);
             pstmt = connection.prepareStatement(sql);
 
@@ -102,7 +102,7 @@ public class DataAccess {
         String sql =
                 "CREATE INDEX fact_index ON fact(type,org,repo_name)";
         try {
-            connection = new SQLiteConnection().openConnection(DB_PATH);
+            connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             stmt = connection.createStatement();
             stmt.executeUpdate(sql);
         } catch (Exception e) {
