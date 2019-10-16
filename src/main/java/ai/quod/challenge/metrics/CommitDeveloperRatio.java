@@ -6,11 +6,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static ai.quod.challenge.database.InitDatabase.DB_NAME;
+import static ai.quod.challenge.utils.FileHandling.DB_PATH;
 
 public class CommitDeveloperRatio {
     public static void process() {
         try {
+            System.out.println("Process ratio of commit per developers metric");
             insertData();
             insertMetric();
         } catch (SQLException e) {
@@ -32,7 +33,7 @@ public class CommitDeveloperRatio {
                 "WHERE \"type\" = 'PushEvent' " +
                 "GROUP BY org,repo_name ";
         try {
-            connection = new SQLiteConnection().openConnection(DB_NAME);
+            connection = new SQLiteConnection().openConnection(DB_PATH);
             stmt = connection.createStatement();
             stmt.executeUpdate(sql);
         } catch (Exception e) {
@@ -58,7 +59,7 @@ public class CommitDeveloperRatio {
                         "		ratio*1.0/(SELECT value FROM var WHERE name = 'max_ratio') metric " +
                         "FROM commit_developer_ratio_data; ";
         try {
-            connection = new SQLiteConnection().openConnection(DB_NAME);
+            connection = new SQLiteConnection().openConnection(DB_PATH);
             connection.setAutoCommit(false);
             stmt = connection.createStatement();
             stmt.addBatch(sql1);

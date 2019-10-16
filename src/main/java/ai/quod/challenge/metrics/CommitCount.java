@@ -7,11 +7,12 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static ai.quod.challenge.database.InitDatabase.DB_NAME;
+import static ai.quod.challenge.utils.FileHandling.DB_PATH;
 
 public class CommitCount {
     public static void process(double num_of_days) {
         try {
+            System.out.println("Process commit count metric");
             insertData(num_of_days);
             insertMetric();
         } catch (SQLException e) {
@@ -30,7 +31,7 @@ public class CommitCount {
                 "WHERE \"type\"='PushEvent' " +
                 "GROUP BY org, repo_name";
         try {
-            connection = new SQLiteConnection().openConnection(DB_NAME);
+            connection = new SQLiteConnection().openConnection(DB_PATH);
             pstmt = connection.prepareStatement(sql);
             pstmt.setDouble(1,num_of_days);
             pstmt.execute();
@@ -59,7 +60,7 @@ public class CommitCount {
                         "		num_commits*1.0/(SELECT value FROM var WHERE name='max_num_commits') metric " +
                         "FROM commit_count_data;";
         try {
-            connection = new SQLiteConnection().openConnection(DB_NAME);
+            connection = new SQLiteConnection().openConnection(DB_PATH);
             connection.setAutoCommit(false);
             stmt = connection.createStatement();
             stmt.addBatch(sql1);

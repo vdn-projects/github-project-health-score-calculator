@@ -1,6 +1,5 @@
 package ai.quod.challenge.database;
 
-import ai.quod.challenge.database.SQLiteConnection;
 import ai.quod.challenge.models.FactModel;
 import ai.quod.challenge.models.issue.PayloadIssueModel;
 import ai.quod.challenge.models.pullrequest.PayloadPRModel;
@@ -11,13 +10,14 @@ import java.io.FileReader;
 import java.sql.*;
 import java.util.ArrayList;
 
-import static ai.quod.challenge.database.InitDatabase.DB_NAME;
+import static ai.quod.challenge.utils.FileHandling.DATA_PATH;
+import static ai.quod.challenge.utils.FileHandling.DB_PATH;
 
 public class DataAccess {
     public static void ingestJson2DB(ArrayList<String> hourList) throws SQLException {
         for (String hour: hourList
         ) {
-            String jsonPath = "./data/" + hour + ".json";
+            String jsonPath = DATA_PATH + hour + ".json";
             ingestJson2DB(jsonPath);
         }
     }
@@ -34,7 +34,7 @@ public class DataAccess {
             int count = 0;
             int batchSize = 20000;
 
-            connection = new SQLiteConnection().openConnection(DB_NAME);
+            connection = new SQLiteConnection().openConnection(DB_PATH);
             connection.setAutoCommit(false);
             pstmt = connection.prepareStatement(sql);
 
@@ -102,7 +102,7 @@ public class DataAccess {
         String sql =
                 "CREATE INDEX fact_index ON fact(type,org,repo_name)";
         try {
-            connection = new SQLiteConnection().openConnection(DB_NAME);
+            connection = new SQLiteConnection().openConnection(DB_PATH);
             stmt = connection.createStatement();
             stmt.executeUpdate(sql);
         } catch (Exception e) {

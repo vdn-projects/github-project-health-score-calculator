@@ -2,8 +2,6 @@ package ai.quod.challenge.database;
 import java.io.IOException;
 import java.sql.*;
 
-import static ai.quod.challenge.database.InitDatabase.DB_NAME;
-
 public class SQLiteConnection {
     private static final String DRIVER = "org.sqlite.JDBC";
     private static final String PATH = "jdbc:sqlite:";

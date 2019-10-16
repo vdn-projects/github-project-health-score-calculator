@@ -12,14 +12,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static ai.quod.challenge.database.InitDatabase.DB_NAME;
+import static ai.quod.challenge.utils.FileHandling.DB_PATH;
 
 public class HealthMetrics {
 
-    private static final String CSV_OUTPUT_PATH = "./output/health_scores.csv";
-
     public static void exportHealthMetric() throws SQLException, IOException {
-        Path dbFilePath = FileSystems.getDefault().getPath(CSV_OUTPUT_PATH);
+        System.out.println("Exporting health metric ...");
+        Path dbFilePath = FileSystems.getDefault().getPath(FileHandling.CSV_OUTPUT_PATH);
         Files.deleteIfExists(dbFilePath);
         Connection connection = null;
         Statement stmt = null;
@@ -52,11 +51,11 @@ public class HealthMetrics {
                 "LIMIT 1000; ";
 
         try {
-            connection = new SQLiteConnection().openConnection(DB_NAME);
+            connection = new SQLiteConnection().openConnection(DB_PATH);
             stmt = connection.createStatement();
             ResultSet resultSet = stmt.executeQuery(sql);
-            FileHandling.extractCsv(resultSet, CSV_OUTPUT_PATH);
-            System.out.println("Health metric result file is placed in: " + CSV_OUTPUT_PATH);
+            FileHandling.extractCsv(resultSet, FileHandling.CSV_OUTPUT_PATH);
+            System.out.println("Health metric result file is placed in: " + FileHandling.CSV_OUTPUT_PATH);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -77,7 +76,7 @@ public class HealthMetrics {
                 "WHERE \"type\" IN ('PushEvent', 'IssuesEvent', 'PullRequestEvent') ";
 
         try {
-            connection = new SQLiteConnection().openConnection(DB_NAME);
+            connection = new SQLiteConnection().openConnection(DB_PATH);
             stmt = connection.createStatement();
             stmt.executeUpdate(sql);
         } catch (Exception e) {

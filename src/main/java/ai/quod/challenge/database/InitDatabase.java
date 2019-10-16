@@ -1,5 +1,7 @@
 package ai.quod.challenge.database;
 
+import ai.quod.challenge.utils.FileHandling;
+
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -9,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public final class InitDatabase {
-    public static final String DB_NAME = "./data/gharchive.db";
 
     private final static String createFact =
             "CREATE TABLE fact(" +
@@ -141,7 +142,7 @@ public final class InitDatabase {
 
 
     public static void  createTables() throws IOException {
-        Path dbFilePath = FileSystems.getDefault().getPath(DB_NAME);
+        Path dbFilePath = FileSystems.getDefault().getPath(FileHandling.DB_PATH);
         Files.deleteIfExists(dbFilePath);
 
         execStmtSql(createFact);
@@ -163,7 +164,7 @@ public final class InitDatabase {
 
 
     private static void execStmtSql(String sql) {
-        try (Connection conn = new SQLiteConnection().openConnection(DB_NAME);
+        try (Connection conn = new SQLiteConnection().openConnection(FileHandling.DB_PATH);
              Statement statement = conn.createStatement()) {
             statement.executeUpdate(sql);
         } catch (SQLException | IOException ex) {

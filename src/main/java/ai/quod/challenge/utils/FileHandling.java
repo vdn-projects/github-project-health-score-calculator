@@ -15,8 +15,11 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 public class FileHandling {
-    public static final String DATA_PATH = "./data/";
+    public static final String BASE_PATH = System.getProperty("user.dir");
+    public static final String DATA_PATH = BASE_PATH + "/data/";
+    public static final String DB_PATH = BASE_PATH + "/data/gharchive.db";
     private static final String GH_ARCHIVE_LINK = "https://data.gharchive.org/";
+    public static final String CSV_OUTPUT_PATH = BASE_PATH + "/output/health_scores.csv";
 
     public static void decompress(ArrayList<String> hourList) throws IOException {
         for (String hour: hourList
