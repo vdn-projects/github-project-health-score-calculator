@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public final class InitDatabase {
-    public static final String DB_NAME = "gharchive.db";
+    public static final String DB_NAME = "./data/gharchive.db";
 
     private final static String createFact =
             "CREATE TABLE fact(" +

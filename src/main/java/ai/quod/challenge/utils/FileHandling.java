@@ -9,11 +9,46 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 public class FileHandling {
-    public static void downloadWithJavaIO(String url, String localFilename) {
+    public static final String DATA_PATH = "./data/";
+    private static final String GH_ARCHIVE_LINK = "https://data.gharchive.org/";
+
+    public static void decompress(ArrayList<String> hourList) throws IOException {
+        for (String hour: hourList
+        ) {
+            try {
+                String zipFile = DATA_PATH + hour + ".gz";
+                String jsonFile = DATA_PATH + hour + ".json";
+                System.out.println("Start extracting file " + zipFile);
+                decompressGzip(new File(zipFile), new File(jsonFile));
+                System.out.println("Complete extracting file " + zipFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void download(ArrayList<String> hourList) {
+        deleteFiles(DATA_PATH, new String[]{"gz", "json"});
+        for (String hour: hourList
+        ) {
+            try {
+                String linkDownload = GH_ARCHIVE_LINK + hour + ".json.gz";
+                System.out.println("Start downloading file " + linkDownload);
+                downloadWithJavaIO(linkDownload, DATA_PATH + hour + ".gz");
+                System.out.println("Complete downloading file " + linkDownload);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void downloadWithJavaIO(String url, String localFilename) {
         System.setProperty("http.agent", "Safari");
         try (BufferedInputStream in = new BufferedInputStream(new URL(url).openStream()); FileOutputStream fileOutputStream = new FileOutputStream(localFilename)) {
 
@@ -27,7 +62,7 @@ public class FileHandling {
         }
     }
 
-    public static void decompressGzip(File input, File output) throws IOException {
+    private static void decompressGzip(File input, File output) throws IOException {
         try (GZIPInputStream in = new GZIPInputStream(new FileInputStream(input))){
             try (FileOutputStream out = new FileOutputStream(output)){
                 byte[] buffer = new byte[1024];
@@ -39,7 +74,7 @@ public class FileHandling {
         }
     }
 
-    public static String readFile(String path) throws IOException {
+    private static String readFile(String path) throws IOException {
         String content = Files.lines(Paths.get(path), StandardCharsets.UTF_8)
                 .collect(Collectors.joining(System.lineSeparator()));
         return content;
@@ -49,5 +84,16 @@ public class FileHandling {
         CSVWriter writer = new CSVWriter(new FileWriter(csvPath), CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER);
         writer.writeAll(resultSet, true);
         writer.close();
+    }
+
+    private static void deleteFiles(String path, String[] extensions){
+        try {
+            for (String extension:extensions
+                 ) {
+                Arrays.stream(new File(path).listFiles((f, p) -> p.endsWith(extension))).forEach(File::delete);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

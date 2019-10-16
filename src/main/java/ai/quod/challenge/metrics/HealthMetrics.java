@@ -3,6 +3,10 @@ package ai.quod.challenge.metrics;
 import ai.quod.challenge.database.SQLiteConnection;
 import ai.quod.challenge.utils.FileHandling;
 
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,7 +15,12 @@ import java.sql.Statement;
 import static ai.quod.challenge.database.InitDatabase.DB_NAME;
 
 public class HealthMetrics {
-    public static void exportHealthMetric() throws SQLException {
+
+    private static final String CSV_OUTPUT_PATH = "./output/health_scores.csv";
+
+    public static void exportHealthMetric() throws SQLException, IOException {
+        Path dbFilePath = FileSystems.getDefault().getPath(CSV_OUTPUT_PATH);
+        Files.deleteIfExists(dbFilePath);
         Connection connection = null;
         Statement stmt = null;
         String sql =
@@ -46,7 +55,8 @@ public class HealthMetrics {
             connection = new SQLiteConnection().openConnection(DB_NAME);
             stmt = connection.createStatement();
             ResultSet resultSet = stmt.executeQuery(sql);
-            FileHandling.extractCsv(resultSet, "output.csv");
+            FileHandling.extractCsv(resultSet, CSV_OUTPUT_PATH);
+            System.out.println("Health metric result file is placed in: " + CSV_OUTPUT_PATH);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

@@ -12,11 +12,21 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 
 import static ai.quod.challenge.database.InitDatabase.DB_NAME;
 
 public class LoadData {
-    public static void ingestFactData(String jsonPath) throws SQLException {
+    public static void ingestJson2DB(ArrayList<String> hourList) throws SQLException {
+        for (String hour: hourList
+        ) {
+            String jsonPath = "./data/" + hour + ".json";
+            ingestJson2DB(jsonPath);
+        }
+    }
+
+    public static void ingestJson2DB(String jsonPath) throws SQLException {
+        System.out.println("Start ingesting data from " + jsonPath);
         Connection connection = null;
         PreparedStatement pstmt = null;
         String sql = "INSERT INTO fact(id,org,repo_name,type,actor,payload_no,payload_action,is_merged,created_at) VALUES(?,?,?,?,?,?,?,?,?);";
@@ -71,12 +81,11 @@ public class LoadData {
                 //This technique is to increase the speed of INSERT
                 if(count % batchSize == 0){
                     int[] result = pstmt.executeBatch();
-                    System.out.println("Number of rows inserted: "+ result.length);
                     connection.commit();
                 }
             }
             bufferedReader.close();
-            System.out.println("Total rows inserted:" + count);
+            System.out.println("Completed with total " + count + " rows inserted.");
 
         } catch (Exception e) {
             e.printStackTrace();
