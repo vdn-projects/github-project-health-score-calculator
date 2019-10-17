@@ -14,7 +14,7 @@ public final class InitDatabase {
 
     private final static String createFact =
             "CREATE TABLE fact(" +
-            "id text PRIMARY KEY," +
+            "id text," +
             "org text," +
             "repo_name text," +
             "type text," +

@@ -41,7 +41,8 @@ public class MergedPullRequest {
                 "	GROUP BY org,repo_name,payload_no" +
                 "	) t2 " +
                 "WHERE opened_at IS NOT NULL " +
-                "AND	merged_at IS NOT NULL";
+                "AND	merged_at IS NOT NULL " + 
+                "AND merged_at > opened_at;";
         try {
             connection = new SQLiteConnection().openConnection(SQLITE_DB_PATH);
             stmt = connection.createStatement();

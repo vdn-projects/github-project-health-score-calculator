@@ -43,6 +43,12 @@ public class DataAccess {
                 count++;
                 FactModel fact = new Gson().fromJson(jsonLine, FactModel.class);
 
+                //Interested in number of event types
+                if (!fact.getType().equals("PushEvent") &&
+                    !fact.getType().equals("IssuesEvent") &&
+                    !fact.getType().equals("PullRequestEvent"))
+                    continue;
+
                 pstmt.setString(1,fact.getId());
 
                 String org = fact.getRepo().getName().split("/")[0];
